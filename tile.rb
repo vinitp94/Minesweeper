@@ -22,5 +22,4 @@ class Tile
   def make_bomb
     @bomb = true
   end
-
 end

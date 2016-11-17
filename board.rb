@@ -1,3 +1,5 @@
+require_relative "tile"
+
 class Board
   attr_reader :grid
 
@@ -11,8 +13,8 @@ class Board
   end
 
   def initialize
-    @grid = self.create_grid
-    grid.populate!
+    @grid = Board.create_grid
+    populate!
   end
 
   def [](pos)
@@ -31,9 +33,8 @@ class Board
       random_col = (0...GRID_DIM).to_a.sample
       pos = [random_row, random_col]
 
-      bomb_placed?(pos) ? retry : place_bomb(pos)
+      bomb_placed?(pos) ? redo : place_bomb(pos)
     end
-
   end
 
   def bomb_placed?(pos)
