@@ -1,5 +1,5 @@
 class Tile
-  attr_writer :bomb, :flagged, :adj_bombs
+  attr_writer :flagged, :adj_bombs
 
   def initialize
     @bomb = false
@@ -24,8 +24,14 @@ class Tile
     @bomb = true
   end
 
+  def set_flag
+
+  end
+
   def to_s
-    return "F" if flagged?
-    return ""
+    #return "F" if flagged?
+    #return "*" if hidden?
+    return String(@adj_bombs) unless bomb?
+    "B"
   end
 end

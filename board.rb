@@ -2,6 +2,7 @@ require_relative "tile"
 
 class Board
   attr_reader :grid
+  attr_accessor :bomb_hash
 
   GRID_DIM = 9
   BOMB_COUNT = 10
@@ -13,9 +14,9 @@ class Board
   end
 
   def initialize
+    @bomb_hash = Hash.new(0)
     @grid = Board.create_grid
     populate
-    set_fringes
   end
 
   def [](pos)
@@ -29,43 +30,46 @@ class Board
   end
 
   def populate
+    place_all_bombs
+    set_adj_counts
+  end
+
+  def place_all_bombs
     BOMB_COUNT.times do
-      random_row = (0...GRID_DIM).to_a.sample
-      random_col = (0...GRID_DIM).to_a.sample
+      grid_range = (0...GRID_DIM).to_a
+      random_row, random_col = grid_range.sample, grid_range.sample
       pos = [random_row, random_col]
 
       bomb_placed?(pos) ? redo : place_bomb(pos)
     end
   end
 
-  def set_fringes
+  def set_adj_counts
+    fill_bomb_hash
     grid.each_with_index do |row, row_idx|
       row.each_with_index do |tile, col_idx|
         pos = [row_idx, col_idx]
-        tile.adj_bombs = count_adj_bombs(pos)
+        tile.adj_bombs = bomb_hash[pos]
       end
     end
   end
 
-  def count_adj_bombs(pos)
-    neighbors = top_tiles(pos) + side_tiles(pos) + bottom_tiles(pos)
-    neighbors.count { |tile| tile && tile.bomb? }
+  def fill_bomb_hash
+    grid.each_with_index do |row, row_idx|
+      row.each_with_index do |tile, col_idx|
+        increment_neighbors(row_idx, col_idx) if tile.bomb?
+      end
+    end
   end
 
-  def top_tiles(pos)
-    row, col = pos
-    [grid[row - 1][col - 1], grid[row - 1][col], grid[row - 1][col + 1]]
-  end
-
-  def bottom_tiles(pos)
-    row, col = pos
-    [grid[row + 1][col - 1], grid[row + 1][col], grid[row + 1][col + 1]]
-
-  end
-
-  def side_tiles(pos)
-    row, col = pos
-    [grid[row][col - 1], grid[row][col + 1]]
+  def increment_neighbors(row, col)
+    [-1, 0, 1].each do |delta_row|
+      [-1, 0, 1].each do |delta_col|
+        next if delta_row == 0 && delta_col == 0
+        pos = [row + delta_row, col + delta_col]
+        bomb_hash[pos] += 1
+      end
+    end
   end
 
   def bomb_placed?(pos)
@@ -77,6 +81,15 @@ class Board
   end
 
   def render
-
+    grid.each do |row|
+      row.each do |tile|
+        print "#{tile} "
+      end
+      print "\n"
+    end
   end
+
 end
+
+board = Board.new
+board.render
